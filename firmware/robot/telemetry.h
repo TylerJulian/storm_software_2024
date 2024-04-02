@@ -1,11 +1,9 @@
 #ifndef TELEMETRY_H
 #define TELEMETRY_H
 
-
-
 #define DATA_UNION_SIZE 8u
 #define COMMAND_STRUCT_SIZE 13u
-#define TEL_BUFFER_SIZE 256
+#define TEL_BUFFER_SIZE 256u
 
 #pragma pack(push, 1)
 typedef struct trigger_struct{
@@ -32,6 +30,12 @@ typedef struct command_struct{
 }command_struct_t;
 #pragma pack(pop)
 static_assert(COMMAND_STRUCT_SIZE == sizeof(command_struct_t));
+
+enum command_ids
+{
+  DRIVE_CMD = 0x01,
+  BUTTON_CMD = 0x02,
+};
 
 bool check_for_telemetry();
 void process_telemetry();

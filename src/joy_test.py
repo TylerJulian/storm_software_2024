@@ -16,6 +16,7 @@ ser = serial.Serial('COM9')  # open serial port
 joystick_count = pygame.joystick.get_count()
 
 command_packet = CommandStruct()
+button_packet = CommandStruct()
 
 if joystick_count > 0:
     joy = pygame.joystick.Joystick(0)
@@ -37,9 +38,18 @@ if joystick_count > 0:
         time.sleep(.05)
         pygame.event.get()
         command_packet.command_id = CommandIDs.drive_command
-        command_packet.data.trigger_control.left = joy.get_axis(4) + 1
-        command_packet.data.trigger_control.right = joy.get_axis(5) + 1
+        command_packet.data.stick_control.forward = joy.get_axis(1)
+        command_packet.data.stick_control.horizontal = joy.get_axis(0)
+
+        button_packet.command_id = CommandIDs.button_command
+        button_packet.data.speed_button_control.speed_multiplier = joy.get_axis(2)
+        button_packet.data.speed_button_control.buttons = 0
+
+        for x in range(joy.get_numbuttons()):
+            button_packet.data.speed_button_control.buttons = (joy.get_button(x), x)
+        print(joy.get_axis(1), joy.get_axis(0), joy.get_axis(2), buttons)
         ser.write(command_packet.raw)
-        print(command_packet.raw)
+        #print(command_packet.raw)
+        print(button_packet.raw)
 
     ser.close()             # close port

@@ -83,16 +83,25 @@ void process_telemetry()
 
 void execute_telemetry(command_struct_t * command)
 {
-  if (command->commandID == 1)
+  switch(command->commandID)
   {
-    uint16_t left = interpolate_f2uint16(command->data.drive_command.left, 0, 2, 1500, 2000);
-    uint16_t right = interpolate_f2uint16(command->data.drive_command.right, 0, 2, 1500, 2000);
+    case DRIVE_CMD: 
+      int16_t differential = interpolate_f2uint16(command->data.drive_command.right, -1, 1, 1000, 2000) - 1500;
+      uint16_t left = interpolate_f2uint16(command->data.drive_command.left, -1, 1, 1000, 2000);
+      uint16_t right = left;
 
-    rightMotor.writeMicroseconds((int) right);
-    leftMotor.writeMicroseconds((int) left);
+      left = left + differential;
+      right = right - differential;
+      
+      rightMotor.writeMicroseconds((int) left);
+      leftMotor.writeMicroseconds((int) right);
 
-    Serial.println(left);
-    Serial.println(right);
+      Serial.println(command->data.drive_command.left);
+      Serial.println(command->data.drive_command.right);
+
+      Serial.println(left);
+      Serial.println(right);
+      break;
   }
 }
 

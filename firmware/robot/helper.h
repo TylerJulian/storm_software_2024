@@ -6,10 +6,10 @@ uint16_t interpolate_f2uint16(float val, float in_min, float in_max, uint16_t ou
 {
   uint16_t retval;
   float scale, offset;
-  scale = (out_max - out_min) / (in_max - in_min); // 500 / 2 = 250
-  offset = out_min - in_min; // 1500
+  scale = (out_max - out_min) / (in_max - in_min); // 1000 / 2 = 500
+  offset = out_min - in_min; // 1001
 
-  retval = (uint16_t)((scale * val) + offset);
+  retval = (uint16_t)((scale * (val - in_min)) + offset);
 
   return retval;
 }
