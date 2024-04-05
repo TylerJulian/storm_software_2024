@@ -25,11 +25,15 @@ void setup() {
   Serial.begin();
   SerialBT.begin();
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(18, OUTPUT);
+  pinMode(19, OUTPUT);
+  pinMode(20, OUTPUT);
+  pinMode(21, OUTPUT);
   init_telemetry();
 }
 int state = HIGH;
 void loop() {
-  while (SerialBT) {
+  while (Serial) {
     
     if (check_for_telemetry()){
       state = ~state;

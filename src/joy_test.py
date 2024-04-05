@@ -9,7 +9,7 @@ from telemetry import *
 pygame.init()
 pygame.joystick.init()
 
-ser = serial.Serial('COM9')  # open serial port
+ser = serial.Serial('COM5')  # open serial port
 
 
 # Get count of joysticks.
@@ -35,7 +35,7 @@ if joystick_count > 0:
 
     # For each joystick:
     while True:
-        time.sleep(.05)
+        time.sleep(.1)
         pygame.event.get()
         command_packet.command_id = CommandIDs.drive_command
         command_packet.data.stick_control.forward = joy.get_axis(1)

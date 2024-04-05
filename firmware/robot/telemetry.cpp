@@ -18,9 +18,9 @@ void init_telemetry()
 
 bool check_for_telemetry()
 {
-  if(0 != SerialBT.available())
+  if(0 != Serial.available())
   {
-    uint8_t data = (uint8_t)SerialBT.read();
+    uint8_t data = (uint8_t)Serial.read();
     append_byte(&tel_cbuf, data);
     return true;
   }
@@ -86,15 +86,32 @@ void execute_telemetry(command_struct_t * command)
   switch(command->commandID)
   {
     case DRIVE_CMD: 
-      int16_t differential = interpolate_f2uint16(command->data.drive_command.right, -1, 1, 1000, 2000) - 1500;
-      uint16_t left = interpolate_f2uint16(command->data.drive_command.left, -1, 1, 1000, 2000);
-      uint16_t right = left;
+      int16_t differential = 0;
+      int16_t left = interpolate_f2int16(command->data.drive_command.left, -1, 1, -255, 255);
+      int16_t right = interpolate_f2int16(command->data.drive_command.right, -1, 1, -255, 255);
 
       left = left + differential;
       right = right - differential;
-      
-      rightMotor.writeMicroseconds((int) left);
-      leftMotor.writeMicroseconds((int) right);
+      if (left < 0)
+      {
+      analogWrite(18, -left);
+      analogWrite(19, 0);
+      }
+      else
+      {
+        analogWrite(18, 0);  
+          analogWrite(19, left);   
+      }
+      if (right < 0)
+      {
+      analogWrite(20, -right);
+      analogWrite(21, 0);
+      }
+      else
+      {
+          analogWrite(20, 0);
+          analogWrite(21, right);   
+      }
 
       Serial.println(command->data.drive_command.left);
       Serial.println(command->data.drive_command.right);
