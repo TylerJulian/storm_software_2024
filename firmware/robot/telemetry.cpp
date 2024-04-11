@@ -86,12 +86,17 @@ void execute_telemetry(command_struct_t * command)
   switch(command->commandID)
   {
     case DRIVE_CMD: 
-      int16_t differential = 0;
-      int16_t left = interpolate_f2int16(command->data.drive_command.left, -1, 1, -255, 255);
-      int16_t right = interpolate_f2int16(command->data.drive_command.right, -1, 1, -255, 255);
+      int16_t differential = command->data.drive_command.right * 255;
+      int16_t left = command->data.drive_command.left * 255;
+      int16_t right = left;
 
       left = left + differential;
       right = right - differential;
+
+      if (left > 255) left = 255;
+      if (left < -255) left = -255;
+      if (right > 255) right = 255;
+      if (right < -255) right = 255;
       if (left < 0)
       {
       analogWrite(18, -left);
