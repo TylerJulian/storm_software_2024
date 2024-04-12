@@ -20,6 +20,8 @@
 
 #include "globals.h"
 #include "telemetry.h"
+#include <WiFi.h>
+#include <WiFiUdp.h>
 
 void setup() {
   Serial.begin();
@@ -33,7 +35,7 @@ void setup() {
 }
 int state = HIGH;
 void loop() {
-  while (Serial) {
+  if (1) {
     
     if (check_for_telemetry()){
       state = ~state;

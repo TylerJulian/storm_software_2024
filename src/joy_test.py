@@ -2,6 +2,7 @@ import pygame
 # Initialize the joysticks.
 import time
 import serial
+import socket
 
 from telemetry import *
 
@@ -9,8 +10,10 @@ from telemetry import *
 pygame.init()
 pygame.joystick.init()
 
-ser = serial.Serial('COM5')  # open serial port
-
+#ser = serial.Serial('COM5')  # open serial port
+ip = "192.168.8.221"
+port = 8888
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Get count of joysticks.
 joystick_count = pygame.joystick.get_count()
@@ -31,7 +34,9 @@ if joystick_count > 0:
     axes = joy.get_numaxes()
     print("Number of axes: {}".format(axes))
     buttons = joy.get_numbuttons()
+    print("Number of buttonss: {}".format(buttons))
     hats = joy.get_numhats()
+    print("Number of hats: {}".format(hats))
 
     # For each joystick:
     while True:
@@ -47,9 +52,10 @@ if joystick_count > 0:
 
         for x in range(joy.get_numbuttons()):
             button_packet.data.speed_button_control.buttons = (joy.get_button(x), x)
-        print(joy.get_axis(1), joy.get_axis(0), joy.get_axis(2), buttons)
-        ser.write(command_packet.raw)
+        print(joy.get_axis(1), joy.get_axis(0), joy.get_axis(2), button_packet.data.speed_button_control.buttons)
+        sock.sendto(command_packet.raw, (ip, port))
+        #sock.sendto(button_packet.raw, (ip, port))
         #print(command_packet.raw)
-        print(button_packet.raw)
+        #print(button_packet.raw)
 
     ser.close()             # close port

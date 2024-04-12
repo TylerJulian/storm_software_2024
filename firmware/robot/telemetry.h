@@ -13,9 +13,17 @@ typedef struct trigger_struct{
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+typedef struct button_struct{
+  float_t speed_mult;
+  uint32_t buttons;
+}button_struct_t;
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 typedef union data_union{
   uint64_t invalid_command;
   trigger_struct_t drive_command;
+  button_struct_t button_command;
   uint64_t long_command;
 }data_union_t;
 #pragma pack(pop)

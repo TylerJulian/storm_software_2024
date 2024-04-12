@@ -3,27 +3,71 @@
 #include "circ_buf.h"
 #include <Servo.h>
 #include "helper.h"
+#include <WiFi.h>
+#include <WiFiUdp.h>
+
+#ifndef STASSID
+#define STASSID "DangerZone"
+#define STAPSK "epicrobots"
+#endif
+unsigned int localPort = 8888;  // local port to listen on
+
+// buffers for receiving and sending data
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE + 1];  // buffer to hold incoming packet,
+char ReplyBuffer[] = "acknowledged\r\n";        // a string to send back
+
+WiFiUDP Udp;
 
 static uint8_t tel_buf[TEL_BUFFER_SIZE];
 static circ_buf_t tel_cbuf = {tel_buf, 0, 0, TEL_BUFFER_SIZE};
 
-Servo leftMotor;
-Servo rightMotor;
+Servo leftMagnet;
+Servo rightMagnet;
 
 void init_telemetry()
 {
-  leftMotor.attach(16);
-  rightMotor.attach(19);
+  WiFi.begin(STASSID, STAPSK);
+  leftMagnet.attach(6);
+  rightMagnet.attach(7);
+
+    while (WiFi.status() != WL_CONNECTED) {
+      Serial.print('.');
+      delay(500);
+  }
+
+  Serial.print("Connected! IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.printf("UDP server on port %d\n", localPort);
+  Udp.begin(localPort);
+
 }
 
 bool check_for_telemetry()
 {
-  if(0 != Serial.available())
-  {
-    uint8_t data = (uint8_t)Serial.read();
-    append_byte(&tel_cbuf, data);
-    return true;
+  // if(0 != Serial.available())
+  // {
+  //   uint8_t data = (uint8_t)Serial.read();
+  //   append_byte(&tel_cbuf, data);
+  //   return true;
+  // }
+  int packetSize = Udp.parsePacket();
+  if (packetSize) {
+    Serial.printf("Received packet of size %d from %s:%d\n    (to %s:%d)\n", packetSize, Udp.remoteIP().toString().c_str(), Udp.remotePort(), Udp.destinationIP().toString().c_str(), Udp.localPort());
+
+    // read the packet into packetBufffer
+    int n = Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+    packetBuffer[n] = 0;
+    Serial.print("size :");
+    Serial.println(n);
+
+    append_buffer(&tel_cbuf, (uint8_t *) packetBuffer, n);
+    // send a reply, to the IP address and port that sent us the packet we received
+    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+    Udp.write(ReplyBuffer);
+    Udp.endPacket();
   }
+
+
   return false;
 }
 
@@ -83,9 +127,11 @@ void process_telemetry()
 
 void execute_telemetry(command_struct_t * command)
 {
+  Serial.println(command->commandID);
   switch(command->commandID)
   {
     case DRIVE_CMD: 
+    {
       int16_t differential = command->data.drive_command.right * 255;
       int16_t left = command->data.drive_command.left * 255;
       int16_t right = left;
@@ -124,6 +170,19 @@ void execute_telemetry(command_struct_t * command)
       Serial.println(left);
       Serial.println(right);
       break;
+    }
+    case BUTTON_CMD:{
+      uint32_t buttons = command->data.button_command.buttons;
+      if (buttons & 0x01)
+      {
+        leftMagnet.writeMicroseconds(1750);
+      }
+      else
+      {
+        leftMagnet.writeMicroseconds(1250);
+      }
+      break;
+    }
   }
 }
 
